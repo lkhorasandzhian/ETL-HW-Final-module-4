@@ -216,3 +216,72 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# ETL generated data
+data/generated/
+data/raw/
+data/tmp/
+data/output/
+data/checkpoints/
+data/spark-warehouse/
+
+# Keep small sample files if needed
+!data/samples/
+!data/samples/.gitkeep
+
+# Large local data files
+*.csv
+*.csv.gz
+*.jsonl
+*.jsonl.gz
+*.parquet
+*.avro
+*.orc
+
+# But allow sample datasets in repository
+!data/samples/*.csv
+!data/samples/*.jsonl
+!data/samples/*.parquet
+
+# Spark / Hadoop local artifacts
+metastore_db/
+derby.log
+spark-warehouse/
+.checkpoint/
+checkpoints/
+*.crc
+_SUCCESS
+
+# Airflow local artifacts
+airflow/logs/
+airflow/plugins/**pycache**/
+airflow/dags/**pycache**/
+standalone_admin_password.txt
+airflow-webserver.pid
+airflow-scheduler.pid
+airflow.db
+
+# Kafka local artifacts
+kafka-logs/
+zookeeper/
+zookeeper-data/
+zookeeper-logs/
+
+# Yandex Cloud / Object Storage secrets and credentials
+yc_config/
+.yc/
+authorized_key.json
+service-account-key.json
+sa-key.json
+*.pem
+*.key
+*.crt
+*.p12
+*.jks
+
+# Local configuration files
+*.local
+*.local.json
+*.local.yaml
+*.local.yml
+config.local.*
