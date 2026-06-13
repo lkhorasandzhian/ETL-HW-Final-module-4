@@ -1,0 +1,15 @@
+-- YDB table for Task 1: Yandex DataTransfer from Managed Service for YDB to Object Storage.
+-- Adjust column types if your import approach requires another schema.
+
+CREATE TABLE transactions_v2 (
+    call_id Utf8 NOT NULL,
+    call_time Datetime,
+    client_id Utf8,
+    region_code Utf8,
+    campaign_type Utf8,
+    call_status Utf8,
+    client_response Utf8,
+    duration_sec Int32,
+    follow_up_required Bool,
+    PRIMARY KEY (call_id)
+);

@@ -1,0 +1,4 @@
+# Data generation scripts use only Python standard library.
+# Optional for later local Spark checks:
+pyspark==3.5.1
+kafka-python==2.0.2
