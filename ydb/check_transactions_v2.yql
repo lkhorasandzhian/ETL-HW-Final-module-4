@@ -1,5 +1,15 @@
 -- Basic validation queries after loading transactions_v2 into YDB.
+
 SELECT COUNT(*) AS rows_count
+FROM transactions_v2;
+
+SELECT *
+FROM transactions_v2
+LIMIT 10;
+
+SELECT
+    MIN(call_time) AS min_call_time,
+    MAX(call_time) AS max_call_time
 FROM transactions_v2;
 
 SELECT region_code, COUNT(*) AS calls_count

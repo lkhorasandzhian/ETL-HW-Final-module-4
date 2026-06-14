@@ -1,9 +1,9 @@
 -- YDB table for Task 1: Yandex DataTransfer from Managed Service for YDB to Object Storage.
--- Adjust column types if your import approach requires another schema.
+-- Source file: data/generated/transactions_v2.csv
 
-CREATE TABLE transactions_v2 (
+CREATE TABLE IF NOT EXISTS transactions_v2 (
     call_id Utf8 NOT NULL,
-    call_time Datetime,
+    call_time Utf8,
     client_id Utf8,
     region_code Utf8,
     campaign_type Utf8,
@@ -12,4 +12,8 @@ CREATE TABLE transactions_v2 (
     duration_sec Int32,
     follow_up_required Bool,
     PRIMARY KEY (call_id)
+)
+WITH (
+    AUTO_PARTITIONING_BY_SIZE = ENABLED,
+    AUTO_PARTITIONING_PARTITION_SIZE_MB = 512
 );
