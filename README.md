@@ -15,7 +15,7 @@
 
 Подробные отчёты по каждому заданию вынесены в отдельные README-файлы.
 
-| Задание   | Описание                                                   | Отчёт                                                                                             |
+| | Описание                                                   | Отчёт                                                                                             |
 | ---------------- | ------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------ |
 | Задание 1 | YDB → Object Storage через Yandex DataTransfer               | [ydb/README.md](https://github.com/lkhorasandzhian/ETL-HW-Final-module-4/blob/main/ydb/README.md)           |
 | Задание 2 | Apache Airflow + Yandex Data Processing + PySpark batch processing | [dataproc/README.md](https://github.com/lkhorasandzhian/ETL-HW-Final-module-4/blob/main/dataproc/README.md) |
