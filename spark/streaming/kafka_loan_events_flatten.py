@@ -1,20 +1,9 @@
 #!/usr/bin/env python3
-"""
-PySpark Structured Streaming job for Task 3.
-Reads JSON events from Kafka, flattens nested fields, and writes them to Object Storage.
 
-Example:
-  spark-submit \
-    --packages org.apache.spark:spark-sql-kafka-0-10_2.12:3.5.1 \
-    spark/streaming/kafka_loan_events_flatten.py \
-    --bootstrap-servers <kafka-bootstrap>:9091 \
-    --topic loan-events \
-    --checkpoint s3a://<bucket>/checkpoints/loan_events_flatten \
-    --output s3a://<bucket>/processed/loan_events_flat
-"""
 from __future__ import annotations
 
 import argparse
+
 from pyspark.sql import SparkSession
 from pyspark.sql import functions as F
 from pyspark.sql import types as T
@@ -45,44 +34,120 @@ SCHEMA = T.StructType([
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser()
+
     parser.add_argument("--bootstrap-servers", required=True)
     parser.add_argument("--topic", required=True)
+    parser.add_argument("--username", required=True)
+    parser.add_argument("--password", required=True)
+
     parser.add_argument("--checkpoint", required=True)
     parser.add_argument("--output", required=True)
+
+    parser.add_argument("--starting-offsets", default="earliest")
+    parser.add_argument("--max-offsets-per-trigger", type=int, default=200000)
+
     return parser.parse_args()
+
+
+def escape_jaas_value(value: str) -> str:
+    return value.replace("\\", "\\\\").replace('"', '\\"')
 
 
 def main() -> None:
     args = parse_args()
-    spark = SparkSession.builder.appName("etl-module4-kafka-loan-events-flatten").getOrCreate()
+
+    spark = (
+        SparkSession.builder
+        .appName("etl-module4-kafka-loan-events-flatten")
+        .getOrCreate()
+    )
+
+    spark.sparkContext.setLogLevel("WARN")
+
+    username = escape_jaas_value(args.username)
+    password = escape_jaas_value(args.password)
+
+    jaas_config = (
+        "org.apache.kafka.common.security.scram.ScramLoginModule required "
+        f'username="{username}" '
+        f'password="{password}";'
+    )
 
     raw = (
         spark.readStream
         .format("kafka")
         .option("kafka.bootstrap.servers", args.bootstrap_servers)
         .option("subscribe", args.topic)
-        .option("startingOffsets", "earliest")
+        .option("startingOffsets", args.starting_offsets)
+        .option("maxOffsetsPerTrigger", args.max_offsets_per_trigger)
+        .option("failOnDataLoss", "false")
+        .option("kafka.security.protocol", "SASL_SSL")
+        .option("kafka.sasl.mechanism", "SCRAM-SHA-512")
+        .option("kafka.sasl.jaas.config", jaas_config)
         .load()
     )
 
-    parsed = raw.select(F.from_json(F.col("value").cast("string"), SCHEMA).alias("event"))
+    kafka_messages = raw.select(
+        F.col("topic").alias("kafka_topic"),
+        F.col("partition").alias("kafka_partition"),
+        F.col("offset").alias("kafka_offset"),
+        F.col("timestamp").alias("kafka_timestamp"),
+        F.col("value").cast("string").alias("raw_json"),
+    )
 
-    flat = parsed.select(
+    parsed = kafka_messages.select(
+        "kafka_topic",
+        "kafka_partition",
+        "kafka_offset",
+        "kafka_timestamp",
+        "raw_json",
+        F.from_json(F.col("raw_json"), SCHEMA).alias("event"),
+    ).where(F.col("event").isNotNull())
+
+    with_documents = parsed.select(
+        "kafka_topic",
+        "kafka_partition",
+        "kafka_offset",
+        "kafka_timestamp",
         F.col("event.application_id").alias("application_id"),
         F.col("event.customer.customer_id").alias("customer_id"),
         F.col("event.customer.region").alias("region_code"),
-        F.col("event.loan.amount").alias("amount"),
-        F.col("event.loan.term_months").alias("term_months"),
-        F.col("event.scoring.score").alias("score"),
-        F.col("event.scoring.risk_level").alias("risk_level"),
+        F.col("event.loan.amount").alias("loan_amount"),
+        F.col("event.loan.term_months").alias("loan_term_months"),
+        F.col("event.scoring.score").alias("scoring_score"),
+        F.col("event.scoring.risk_level").alias("scoring_risk_level"),
         F.col("event.decision_status").alias("decision_status"),
-        F.to_timestamp("event.submitted_at").alias("submitted_at"),
+        F.to_timestamp(
+            F.col("event.submitted_at"),
+            "yyyy-MM-dd'T'HH:mm:ssX",
+        ).alias("submitted_at"),
         F.size("event.documents").alias("documents_count"),
-        F.expr("exists(event.documents, x -> x.status = 'rejected')").alias("has_rejected_document"),
+        F.explode_outer(F.col("event.documents")).alias("document"),
+    )
+
+    flat = with_documents.select(
+        "application_id",
+        "customer_id",
+        "region_code",
+        "loan_amount",
+        "loan_term_months",
+        "scoring_score",
+        "scoring_risk_level",
+        F.col("document.type").alias("document_type"),
+        F.col("document.status").alias("document_status"),
+        "documents_count",
+        "decision_status",
+        "submitted_at",
+        "kafka_topic",
+        "kafka_partition",
+        "kafka_offset",
+        "kafka_timestamp",
+        F.current_timestamp().alias("processed_at"),
     )
 
     query = (
         flat.writeStream
+        .trigger(once=True)
         .format("parquet")
         .option("checkpointLocation", args.checkpoint)
         .option("path", args.output)
@@ -91,6 +156,8 @@ def main() -> None:
     )
 
     query.awaitTermination()
+
+    spark.stop()
 
 
 if __name__ == "__main__":
