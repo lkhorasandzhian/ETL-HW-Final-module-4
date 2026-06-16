@@ -1,190 +1,164 @@
-# ETL Module 4 Exam: Yandex Cloud Data Platform
+# ETL Yandex Cloud Data Platform HW Final
 
-Итоговое практическое задание 4-го модуля по дисциплине «ETL-процессы».
+Итоговое домашнее задание (модуль 4) по учебной дисциплине «ETL-процессы».
+Тема: «реализация ETL-процесса».
+Выполнил студент: Хорасанджян Левон, МИНДА251.
 
-## 1. Цель работы
+В рамках проекта реализован полный ETL/Streaming pipeline в Yandex Cloud:
 
-Реализовать набор ETL/Streaming-процессов в Yandex Cloud:
+1. перенос данных из YDB в Object Storage через Yandex DataTransfer;
+2. batch-обработка данных через Apache Airflow, Yandex Data Processing и PySpark;
+3. streaming-обработка Kafka topic через PySpark;
+4. визуализация результатов в Yandex DataLens.
 
-1. Перенос данных из Managed Service for YDB в Object Storage через Yandex DataTransfer.
-2. Автоматизация обработки файлов 50+ МБ через Apache Airflow и Yandex Data Processing / PySpark.
-3. Чтение Kafka topic через PySpark, разбор вложенного JSON в плоский вид, объём передачи 20+ МБ.
-4. Построение аналитических дашбордов в Yandex DataLens.
+## Навигация по отчётам
 
-## 2. Структура репозитория
+Подробные отчёты по каждому заданию вынесены в отдельные README-файлы.
 
+| Задание   | Описание                                                   | Отчёт                                                                                             |
+| ---------------- | ------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------ |
+| Задание 1 | YDB → Object Storage через Yandex DataTransfer               | [ydb/README.md](https://chatgpt.com/g/g-p-6a29dd49dc4c8191889a39b24cdf6677-etl/c/ydb/README.md)           |
+| Задание 2 | Apache Airflow + Yandex Data Processing + PySpark batch processing | [dataproc/README.md](https://chatgpt.com/g/g-p-6a29dd49dc4c8191889a39b24cdf6677-etl/c/dataproc/README.md) |
+| Задание 3 | Kafka topic + PySpark Streaming + flatten JSON                     | [kafka/README.md](https://chatgpt.com/g/g-p-6a29dd49dc4c8191889a39b24cdf6677-etl/c/kafka/README.md)       |
+| Задание 4 | Yandex DataLens dashboard                                          | [datalens/README.md](https://chatgpt.com/g/g-p-6a29dd49dc4c8191889a39b24cdf6677-etl/c/datalens/README.md) |
+
+## Структура проекта
+
+<details>
+<summary>Показать дерево проекта</summary>
 ```text
 ETL-HW-Final-module-4/
-├── README.md
-├── requirements.txt
-├── scripts/
-│   ├── generate_transactions_v2.py
-│   ├── generate_applications.py
-│   ├── generate_loan_events_jsonl.py
-│   └── generate_all_data.py
-├── ydb/
-│   ├── create_transactions_v2.yql
-│   ├── check_transactions_v2.yql
-│   └── README.md
 ├── airflow/
 │   └── dags/
 │       └── etl_applications_dataproc_dag.py
+├── data/
+│   └── samples/
+│       ├── .gitkeep
+│       └── applications_sample.csv
+├── datalens/
+│   └── README.md
+├── dataproc/
+│   └── README.md
+├── docs/
+│   └── images/
+│       ├── task_01/
+│       │   ├── 1_etl_transactions_ydb.png
+│       │   ├── 2_ydb_fulfill_01.png
+│       │   ├── 2_ydb_fulfill_02.png
+│       │   ├── 3_transfer.png
+│       │   └── 4_object_storage_result.png
+│       ├── task_02/
+│       │   ├── 1_airflow_cluster_alive.png
+│       │   ├── 2_airflow_dag_uploaded.png
+│       │   ├── 3_pipeline_success_01.png
+│       │   ├── 3_pipeline_success_02.png
+│       │   └── 4_object_storage_output.png
+│       ├── task_03/
+│       │   ├── 1_kafka_security_group_01.png
+│       │   ├── 1_kafka_security_group_02.png
+│       │   ├── 1_kafka_security_group_03.png
+│       │   ├── 2_kafka_cluster_alive.png
+│       │   ├── 3_kafka_topic_created.png
+│       │   ├── 4_kafka_user_created.png
+│       │   ├── 5_kafka_producer_sent_25mb.png
+│       │   ├── 6_spark_script_uploaded_to_object_storage.png
+│       │   ├── 7_dataproc_cluster_alive.png
+│       │   ├── 8_dataproc_pyspark_job_done_01.png
+│       │   ├── 8_dataproc_pyspark_job_done_02.png
+│       │   ├── 9_object_storage_streaming_output.png
+│       │   └── 10_streaming_checkpoint.png
+│       └── task_04/
+│           ├── 1_datalens_files_connection_01.png
+│           ├── 1_datalens_files_connection_02.png
+│           ├── 2_datalens_batch_dataset_fields_01.png
+│           ├── 2_datalens_batch_dataset_fields_02.png
+│           ├── 3_datalens_streaming_dataset_fields.png
+│           ├── 4_datalens_dashboard_overview_01.png
+│           └── 4_datalens_dashboard_overview_02.png
+├── kafka/
+│   ├── producer/
+│   │   └── produce_loan_events.py
+│   └── README.md
+├── scripts/
+│   ├── generate_all_data.py
+│   ├── generate_applications.py
+│   ├── generate_loan_events_jsonl.py
+│   ├── generate_transactions_v2.py
+│   └── prepare_datalens_csv.py
 ├── spark/
 │   ├── batch/
 │   │   └── process_applications.py
 │   └── streaming/
 │       └── kafka_loan_events_flatten.py
-├── kafka/
-│   └── producer/
-│       └── produce_loan_events.py
-├── datalens/
+├── ydb/
+│   ├── check_transactions_v2.yql
+│   ├── create_transactions_v2.yql
 │   └── README.md
-├── docs/
-│   └── images/
-└── data/
-    ├── raw/
-    ├── generated/
-    └── samples/
+├── .gitignore
+├── LICENSE
+├── README.md
+└── requirements.txt
 ```
+</details>
 
-## 3. Подготовка синтетических данных
+## Основные артефакты проекта
 
-Сгенерированные большие файлы не коммитятся в Git, они создаются локально и загружаются в Object Storage/YDB/Kafka.
+- airflow/dags/etl_applications_dataproc_dag.py
+- spark/batch/process_applications.py
+- spark/streaming/kafka_loan_events_flatten.py
+- kafka/producer/produce_loan_events.py
+- scripts/generate_all_data.py
+- scripts/prepare_datalens_csv.py
+- ydb/create_transactions_v2.yql
+- ydb/check_transactions_v2.yql
 
-```bash
-python -m venv .venv
-source .venv/bin/activate
-pip install -r requirements.txt
+## Данные
 
+Для проверки заданий были подготовлены синтетические данные:
+
+| Файл                | Назначение               | Объём |
+| ----------------------- | ---------------------------------- | ---------: |
+| `transactions_v2.csv` | задание 1, YDB/DataTransfer |      35 MB |
+| `applications.csv`    | задание 2, batch processing |      60 MB |
+| `loan_events.jsonl`   | задание 3, Kafka streaming  |      25 MB |
+
+Файлы генерируются локально скриптами из папки `scripts/` и не предназначены для хранения в репозитории как основные артефакты.
+
+Запуск генерации:
+
+```powershell
 python scripts/generate_all_data.py
-
-ls -lh data/generated/
 ```
 
-Ожидаемые файлы:
+## Скриншоты
 
-| Файл                | Назначение            | Требуемый объём | Объём по умолчанию |
-| ----------------------- | ------------------------------- | ----------------------------: | ---------------------------------: |
-| `transactions_v2.csv` | Task 1, YDB/DataTransfer        |                      30+ МБ |                             35 MiB |
-| `applications.csv`    | Task 2, Airflow/Data Processing |                      50+ МБ |                             60 MiB |
-| `loan_events.jsonl`   | Task 3, Kafka/PySpark           |                      20+ МБ |                             25 MiB |
+Скриншоты выполнения заданий сохранены в папке `docs/images/`.
 
-## 4. Задание 1. Yandex DataTransfer: YDB → Object Storage
+## DataLens
 
-### 4.1. Что сделано
+Для задания 4 был создан итоговый dashboard.
 
-- Создана YDB database: `<указать имя/ID>`.
-- Создана таблица `transactions_v2` с помощью `ydb/create_transactions_v2.yql`.
-- Загружены данные из `transactions_v2.csv`.
-- Создан бакет Object Storage: `<указать bucket>`.
-- Настроен transfer из YDB в Object Storage.
-- Проверена выгрузка файлов в Object Storage.
+Он визуализирует результаты batch- и streaming-обработки:
 
-### 4.2. Артефакты
+* распределение заявок по статусам решений;
+* динамику заявок по дням;
+* approval rate по уровням риска;
+* среднюю сумму заявки по продуктам;
+* распределение Kafka-заявок по уровню скорингового риска;
+* количество документов по статусам проверки.
 
-- YQL-скрипт создания таблицы: `ydb/create_transactions_v2.yql`.
-- YQL-скрипт проверок: `ydb/check_transactions_v2.yql`.
-- Скриншоты: `docs/images/task1_*.png`.
+Подробности: [datalens/README.md](https://chatgpt.com/g/g-p-6a29dd49dc4c8191889a39b24cdf6677-etl/c/datalens/README.md).
 
-## 5. Задание 2. Apache Airflow + Yandex Data Processing
+## Финальное состояние инфраструктуры
 
-### 5.1. Что сделано
+После выполнения и проверки заданий дорогие временные ресурсы были удалены:
 
-- Подготовлен входной файл `applications.csv` объёмом 50+ МБ.
-- Файл загружен в Object Storage: `s3://<bucket>/raw/applications/applications.csv`.
-- Подготовлено PySpark-задание: `spark/batch/process_applications.py`.
-- Подготовлен DAG: `airflow/dags/etl_applications_dataproc_dag.py`.
-- DAG создаёт кластер Yandex Data Processing, запускает PySpark job и удаляет кластер.
-- Результат записывается в Object Storage: `s3://<bucket>/processed/applications_agg/`.
+* Yandex Data Processing clusters;
+* Managed Service for Apache Kafka cluster;
+* временные сетевые ресурсы для Kafka/Data Processing.
 
-### 5.2. Результирующая витрина
+Оставлены только необходимые базовые ресурсы, такие как Object Storage, Service Account, VPC и Cloud Logging.
 
-Гранулярность: дата, регион, продукт, риск, статус решения.
+## Итог
 
-Поля:
-
-- `event_date`
-- `region_code`
-- `product_type`
-- `risk_level`
-- `decision_status`
-- `applications_count`
-- `requested_amount_total`
-- `approved_amount_total`
-- `avg_credit_score`
-- `avg_processing_time_sec`
-
-## 6. Задание 3. Kafka + PySpark
-
-### 6.1. Что сделано
-
-- Подготовлен файл `loan_events.jsonl` объёмом 20+ МБ.
-- Создан Kafka topic: `<topic name>`.
-- События отправлены в Kafka producer-скриптом `kafka/producer/produce_loan_events.py`.
-- PySpark job `spark/streaming/kafka_loan_events_flatten.py` читает topic, разбирает JSON и сохраняет плоскую таблицу.
-
-### 6.2. Плоская структура результата
-
-- `application_id`
-- `customer_id`
-- `region_code`
-- `amount`
-- `term_months`
-- `score`
-- `risk_level`
-- `decision_status`
-- `submitted_at`
-- `documents_count`
-- `has_rejected_document`
-
-## 7. Задание 4. DataLens
-
-Построены дашборды по результатам загрузки и обработки данных.
-
-### 7.1. Дашборд 1: Applications
-
-- Количество заявок.
-- Approval rate.
-- Сумма запрошенных и одобренных кредитов.
-- Распределение по регионам, продуктам и уровню риска.
-
-### 7.2. Дашборд 2: Kafka Loan Events
-
-- Количество событий по времени.
-- Доля manual review.
-- Доля заявок с отклонёнными документами.
-- Сумма заявок по risk level.
-
-### 7.3. Дашборд 3: Calls / DataTransfer
-
-- Количество звонков по регионам.
-- Распределение по campaign type.
-- Follow-up required.
-
-Скриншоты дашбордов: `docs/images/task4_*.png`.
-
-## 8. Проверка результатов
-
-Добавить сюда команды, скриншоты и короткое описание проверок:
-
-```bash
-# Размеры локально сгенерированных файлов
-ls -lh data/generated/
-
-# Пример локального запуска batch Spark job
-spark-submit spark/batch/process_applications.py \
-  --input data/generated/applications.csv \
-  --output data/output/applications_agg
-```
-
-## 9. Что важно остановить после проверки
-
-Чтобы не расходовать ресурсы облака, после проверки были остановлены/удалены:
-
-- временный кластер Yandex Data Processing;
-- лишние Airflow/Kafka ресурсы, если они больше не нужны;
-- временные endpoints/transfers, если они использовались только для проверки.
-
-## 10. Итог
-
-В результате работы подготовлен полный ETL/Streaming pipeline с переносом данных через DataTransfer, batch-обработкой в PySpark, streaming-обработкой Kafka topic и визуализацией в DataLens.
+В результате выполнены все 4 задания итогового проекта: DataTransfer, Airflow/Data Processing, Kafka/PySpark Streaming и DataLens. Подробные отчёты и скриншоты находятся в отдельных README-файлах и папке `docs/images/`.
