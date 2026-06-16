@@ -25,8 +25,9 @@
 ## Структура проекта
 
 <details>
-<summary>Показать дерево проекта</summary>
-```text
+<summary>Посмотреть / Скрыть</summary>
+
+<pre>
 ETL-HW-Final-module-4/
 ├── airflow/
 │   └── dags/
@@ -98,7 +99,8 @@ ETL-HW-Final-module-4/
 ├── LICENSE
 ├── README.md
 └── requirements.txt
-```
+</pre>
+
 </details>
 
 ## Основные артефакты проекта
