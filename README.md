@@ -17,10 +17,10 @@
 
 | Задание   | Описание                                                   | Отчёт                                                                                             |
 | ---------------- | ------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------ |
-| Задание 1 | YDB → Object Storage через Yandex DataTransfer               | [ydb/README.md](https://chatgpt.com/g/g-p-6a29dd49dc4c8191889a39b24cdf6677-etl/c/ydb/README.md)           |
-| Задание 2 | Apache Airflow + Yandex Data Processing + PySpark batch processing | [dataproc/README.md](https://chatgpt.com/g/g-p-6a29dd49dc4c8191889a39b24cdf6677-etl/c/dataproc/README.md) |
-| Задание 3 | Kafka topic + PySpark Streaming + flatten JSON                     | [kafka/README.md](https://chatgpt.com/g/g-p-6a29dd49dc4c8191889a39b24cdf6677-etl/c/kafka/README.md)       |
-| Задание 4 | Yandex DataLens dashboard                                          | [datalens/README.md](https://chatgpt.com/g/g-p-6a29dd49dc4c8191889a39b24cdf6677-etl/c/datalens/README.md) |
+| Задание 1 | YDB → Object Storage через Yandex DataTransfer               | [ydb/README.md](https://github.com/lkhorasandzhian/ETL-HW-Final-module-4/blob/main/ydb/README.md)           |
+| Задание 2 | Apache Airflow + Yandex Data Processing + PySpark batch processing | [dataproc/README.md](https://github.com/lkhorasandzhian/ETL-HW-Final-module-4/blob/main/dataproc/README.md) |
+| Задание 3 | Kafka topic + PySpark Streaming + flatten JSON                     | [kafka/README.md](https://github.com/lkhorasandzhian/ETL-HW-Final-module-4/blob/main/kafka/README.md)       |
+| Задание 4 | Yandex DataLens dashboard                                          | [datalens/README.md](https://github.com/lkhorasandzhian/ETL-HW-Final-module-4/blob/main/datalens/README.md) |
 
 ## Структура проекта
 
